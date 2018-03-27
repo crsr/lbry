@@ -43,15 +43,16 @@ class DHTHashAnnouncerTest(unittest.TestCase):
         self.dht_node.peerPort = 3333
         self.dht_node.clock = reactor
         self.db_dir = tempfile.mkdtemp()
-        storage = SQLiteStorage(self.db_dir)
-        yield storage.setup()
-        self.announcer = DHTHashAnnouncer(self.dht_node, storage, 10)
+        self.storage = SQLiteStorage(self.db_dir)
+        yield self.storage.setup()
+        self.announcer = DHTHashAnnouncer(self.dht_node, self.storage, 10)
         for blob_hash in self.blobs_to_announce:
-            yield storage.add_completed_blob(blob_hash, 100, 0, 1)
+            yield self.storage.add_completed_blob(blob_hash, 100, 0, 1)
 
     @defer.inlineCallbacks
     def tearDown(self):
         self.dht_node.call_later_manager.stop()
+        yield self.storage.stop()
         yield threads.deferToThread(shutil.rmtree, self.db_dir)
 
     @defer.inlineCallbacks
