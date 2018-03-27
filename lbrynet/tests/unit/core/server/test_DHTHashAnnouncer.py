@@ -1,7 +1,7 @@
 import tempfile
 import shutil
 from twisted.trial import unittest
-from twisted.internet import defer, reactor
+from twisted.internet import defer, reactor, threads
 
 from lbrynet.tests.util import random_lbry_hash
 from lbrynet.dht.hashannouncer import DHTHashAnnouncer
@@ -49,9 +49,10 @@ class DHTHashAnnouncerTest(unittest.TestCase):
         for blob_hash in self.blobs_to_announce:
             yield storage.add_completed_blob(blob_hash, 100, 0, 1)
 
+    @defer.inlineCallbacks
     def tearDown(self):
         self.dht_node.call_later_manager.stop()
-        shutil.rmtree(self.db_dir)
+        yield threads.deferToThread(shutil.rmtree, self.db_dir)
 
     @defer.inlineCallbacks
     def test_announce_fail(self):
