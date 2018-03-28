@@ -197,16 +197,12 @@ class KademliaProtocol(protocol.DatagramProtocol):
                 packetData = data[startPos:startPos + self.msgSizeLimit]
                 encSeqNumber = chr(seqNumber >> 8) + chr(seqNumber & 0xff)
                 txData = '\x00%s%s%s\x00%s' % (encTotalPackets, encSeqNumber, rpcID, packetData)
-                self._scheduleSendNext(txData, address)
+                self._write(txData, address)
 
                 startPos += self.msgSizeLimit
                 seqNumber += 1
         else:
-            self._scheduleSendNext(data, address)
-
-    def _scheduleSendNext(self, txData, address):
-        """Schedule the sending of the next UDP packet """
-        delayed_call, _ = self._node.reactor_callLater(0, self._write, txData, address)
+            self._write(data, address)
 
     def _write(self, txData, address):
         if self.transport:
